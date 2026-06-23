@@ -10,6 +10,8 @@ export default function RootLayout() {
       <Stack.Screen name="CrearCuenta" options={{ title: "Crear" }} />
       <Stack.Screen name="VincularCuenta" options={{ title: "Vinculo" }} />
       <Stack.Screen name="inicio" options={{ title: "PaginaPrincipal" }} />
+      <Stack.Screen name="ModuloJuego" options={{ title: "Modulo" }} />
+
 
 
       <Stack.Screen name="new" options={{ title: "Nuevo" }} />
