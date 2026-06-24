@@ -1,21 +1,21 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
+  Image,
   Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { auth } from '../service/firebaseConfig';
 import {
-  obtenerTodosModulos,
-  obtenerModulosUsuario,
   agregarModuloUsuario,
+  obtenerModulosUsuario,
+  obtenerTodosModulos,
 } from '../service/moduloService';
 import { Modulo } from '../types/Modulo';
 
@@ -180,7 +180,8 @@ export default function Inicio() {
           <Text style={styles.navIcono}>🏠</Text>
           <Text style={[styles.navTexto, styles.navActivo]}>Inicio</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/inicio')}> {/* Arreglar Rutas */}
+        {/* Arreglar Rutas */}
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Historial')}>
           <Text style={styles.navIcono}>🕐</Text>
           <Text style={styles.navTexto}>Historial</Text>
         </TouchableOpacity>

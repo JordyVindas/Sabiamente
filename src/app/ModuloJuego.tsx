@@ -1,22 +1,21 @@
-import { useEffect, useState, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Animated,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { auth } from '../service/firebaseConfig';
 import {
   obtenerFasesPorModulo,
-  obtenerJuegosPorFase,
   obtenerJuegosCompletadosPorModulo,
+  obtenerJuegosPorFase,
 } from '../service/faseService';
+import { auth } from '../service/firebaseConfig';
 import { Fase } from '../types/Fase';
 import { Juego } from '../types/Juego';
 
@@ -44,7 +43,7 @@ export default function ModuloJuego() {
 
   const uid = auth.currentUser?.uid;
 
-  // Animación nivel final
+
   const colorIndex = useRef(0);
   const colorAnim = useRef(new Animated.Value(0)).current;
   const [colorActual, setColorActual] = useState(COLORES_NIVEL_FINAL[0]);
@@ -117,7 +116,7 @@ export default function ModuloJuego() {
     return (
       <TouchableOpacity
         style={[styles.octagonoWrapper, alineacion]}
-       /* onPress={() => router.push(`/Juego?id=${juego.id}&tipo=${juego.tipo}`)}*/
+       onPress={() => router.push({pathname: '../Juego', params: { id: juego.id, tipo: juego.tipo } })}
       >
         <View style={[
           styles.octagono,
@@ -203,7 +202,7 @@ export default function ModuloJuego() {
           <Ionicons name="home" size={22} color="#888" />
           <Text style={styles.navTexto}>Inicio</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/inicio')}>    {/* Arreglar Rutas */}
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/inicio')}>    
           <Ionicons name="time" size={22} color="#888" />
           <Text style={styles.navTexto}>Historial</Text>
         </TouchableOpacity>
@@ -261,11 +260,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#1B3A6B',
   },
   bannerTexto: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#1B3A6B',
-    textAlign: 'center',
-  },
+  fontSize: 15,
+  fontWeight: 'bold',
+  color: '#1B3A6B',  
+  textAlign: 'center',
+},
   zigzagContainer: {
     paddingVertical: 8,
     gap: 24,
