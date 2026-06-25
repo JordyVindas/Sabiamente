@@ -1,14 +1,7 @@
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  doc,
-  setDoc,
-  Timestamp,
-} from 'firebase/firestore';
-import { db } from './firebaseConfig';
+import { collection, doc, getDocs, query, setDoc, Timestamp, where } from 'firebase/firestore';
 import { Modulo } from '../types/Modulo';
+import { db } from './firebaseConfig';
+import { registrarActividad } from './historialService';
 
 export const obtenerTodosModulos = async (): Promise<Modulo[]> => {
   const snap = await getDocs(
@@ -28,11 +21,25 @@ export const obtenerModulosUsuario = async (uid: string): Promise<Set<string>> =
 };
 
 export const agregarModuloUsuario = async (uid: string, moduloId: string): Promise<void> => {
+  // Obtener nombre del módulo
+  const moduloSnap = await getDocs(
+    query(collection(db, 'modulos'), where('__name__', '==', moduloId))
+  );
+  const nombreModulo = moduloSnap.docs[0]?.data().titulo || 'Módulo';
+
   await setDoc(
     doc(db, 'usuarioModulos', uid, 'modulos', moduloId),
     {
       agregadoEn: Timestamp.now(),
       completado: false,
     }
+  );
+
+  await registrarActividad(
+    uid,
+    'modulo_agregado',
+    'Registro de nuevo módulo',
+    `Se ha registrado el módulo "${nombreModulo}" en tu perfil`,
+    moduloId
   );
 };
