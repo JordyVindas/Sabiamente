@@ -1,15 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Animated,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
+import { useAccesibilidad } from '../context/AccesibilidadContext';
 import {
   obtenerFasesPorModulo,
   obtenerJuegosCompletadosPorModulo,
@@ -33,19 +33,21 @@ const iconoMap: { [key: string]: string } = {
 
 export default function ModuloJuego() {
   const router = useRouter();
+  const { colores, escalaFuente, modoOscuro } = useAccesibilidad();
   const { id: moduloId, titulo } = useLocalSearchParams<{ id: string; titulo: string }>();
 
   const [fases, setFases] = useState<Fase[]>([]);
   const [juegosPorFase, setJuegosPorFase] = useState<{ [faseId: string]: Juego[] }>({});
   const [juegosCompletados, setJuegosCompletados] = useState<Set<string>>(new Set());
+  const [ordenGlobal, setOrdenGlobal] = useState<string[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const [juegoSeleccionado, setJuegoSeleccionado] = useState<Juego | null>(null);
+  const [alertaBloqueo, setAlertaBloqueo] = useState(false);
 
   const uid = auth.currentUser?.uid;
 
-
   const colorIndex = useRef(0);
-  const colorAnim = useRef(new Animated.Value(0)).current;
   const [colorActual, setColorActual] = useState(COLORES_NIVEL_FINAL[0]);
 
   useEffect(() => {
@@ -56,9 +58,11 @@ export default function ModuloJuego() {
     return () => clearInterval(intervalo);
   }, []);
 
-  useEffect(() => {
-    if (moduloId) cargarDatos();
-  }, [moduloId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (moduloId) cargarDatos();
+    }, [moduloId])
+  );
 
   const cargarDatos = async () => {
     if (!uid || !moduloId) return;
@@ -75,17 +79,33 @@ export default function ModuloJuego() {
         })
       );
 
+      // Construir el orden global de juegos (fase por fase, en orden)
+      const orden: string[] = [];
+      fasesData.forEach((fase) => {
+        const juegos = juegosMap[fase.id] || [];
+        juegos.forEach((juego) => orden.push(juego.id));
+      });
+
       const completados = await obtenerJuegosCompletadosPorModulo(uid, moduloId);
 
       setFases(fasesData);
       setJuegosPorFase(juegosMap);
       setJuegosCompletados(completados);
+      setOrdenGlobal(orden);
     } catch (e) {
       console.error('Error cargando módulo:', e);
       setError('No se pudo cargar el módulo. Intenta de nuevo.');
     } finally {
       setCargando(false);
     }
+  };
+
+  // Un juego está desbloqueado si es el primero, o si el anterior está completado
+  const estaDesbloqueado = (juegoId: string): boolean => {
+    const indice = ordenGlobal.indexOf(juegoId);
+    if (indice <= 0) return true; // el primero siempre desbloqueado
+    const anteriorId = ordenGlobal[indice - 1];
+    return juegosCompletados.has(anteriorId);
   };
 
   const OctagonoJuego = ({
@@ -98,13 +118,16 @@ export default function ModuloJuego() {
     esNivelFinal: boolean;
   }) => {
     const completado = juegosCompletados.has(juego.id);
+    const desbloqueado = estaDesbloqueado(juego.id);
     const iconoNombre = iconoMap[juego.icono] || 'help-circle';
 
-    const colorIcono = esNivelFinal
-      ? colorActual
-      : completado
-        ? '#2E7D32'
-        : '#F5C518';
+    const colorIcono = !desbloqueado
+      ? '#999'
+      : esNivelFinal
+        ? colorActual
+        : completado
+          ? '#2E7D32'
+          : '#F5C518';
 
     const alineacion =
       posicion === 'izquierda'
@@ -113,22 +136,31 @@ export default function ModuloJuego() {
           ? { alignSelf: 'flex-end' as const, marginRight: 40 }
           : { alignSelf: 'center' as const };
 
+    const handlePress = () => {
+      if (!desbloqueado) {
+        setAlertaBloqueo(true);
+        return;
+      }
+      setJuegoSeleccionado(juego);
+    };
+
     return (
       <TouchableOpacity
         style={[styles.octagonoWrapper, alineacion]}
-       onPress={() => router.push({pathname: '../Juego', params: { id: juego.id, tipo: juego.tipo } })}
+        onPress={handlePress}
       >
         <View style={[
           styles.octagono,
-          esNivelFinal && styles.octagonoNivelFinal,
+          { backgroundColor: colores.fondoTarjeta },
+          !desbloqueado && styles.octagonoBloqueado,
         ]}>
           <Ionicons
-            name={iconoNombre as any}
+            name={!desbloqueado ? 'lock-closed' : (iconoNombre as any)}
             size={32}
             color={colorIcono}
           />
         </View>
-        <Text style={styles.octagonoTitulo} numberOfLines={2}>
+        <Text style={[styles.octagonoTitulo, { color: colores.texto, fontSize: 11 * escalaFuente }]} numberOfLines={2}>
           {juego.titulo}
         </Text>
       </TouchableOpacity>
@@ -138,7 +170,7 @@ export default function ModuloJuego() {
   const posicionesZigzag = ['izquierda', 'derecha'] as const;
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { backgroundColor: colores.fondo }]}>
 
       {/* HEADER */}
       <View style={styles.header}>
@@ -152,7 +184,7 @@ export default function ModuloJuego() {
       </View>
 
       {cargando ? (
-        <ActivityIndicator size="large" color="#1B3A6B" style={styles.cargando} />
+        <ActivityIndicator size="large" color={colores.primario} style={styles.cargando} />
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorTexto}>{error}</Text>
@@ -175,19 +207,29 @@ export default function ModuloJuego() {
                   styles.bannerFase,
                   fase.esNivelFinal && styles.bannerNivelFinal,
                 ]}>
-                  <Text style={styles.bannerTexto}>{fase.titulo}</Text>
+                  <Text style={[
+                    styles.bannerTexto,
+                    fase.esNivelFinal && { color: '#FFFFFF' },
+                  ]}>
+                    {fase.titulo}
+                  </Text>
                 </View>
 
                 {/* Juegos en zigzag */}
                 <View style={styles.zigzagContainer}>
-                  {juegos.map((juego, index) => (
-                    <OctagonoJuego
-                      key={juego.id}
-                      juego={juego}
-                      posicion={posicionesZigzag[index % 2]}
-                      esNivelFinal={fase.esNivelFinal}
-                    />
-                  ))}
+                  {juegos.map((juego, index) => {
+                    const esUltimoJuego = index === juegos.length - 1;
+                    const esNivelFinalReal = fase.esNivelFinal && esUltimoJuego;
+
+                    return (
+                      <OctagonoJuego
+                        key={juego.id}
+                        juego={juego}
+                        posicion={posicionesZigzag[index % 2]}
+                        esNivelFinal={esNivelFinalReal}
+                      />
+                    );
+                  })}
                 </View>
 
               </View>
@@ -196,19 +238,78 @@ export default function ModuloJuego() {
         </ScrollView>
       )}
 
+      {/* MODAL DE JUEGO */}
+      {juegoSeleccionado && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContenido}>
+            <Text style={styles.modalTitulo}>
+              Modalidad: {juegoSeleccionado.titulo}
+            </Text>
+
+            <Text style={styles.modalDescripcion}>
+              {juegoSeleccionado.descripcion}
+            </Text>
+
+            <Text style={styles.modalDetalle}>Tiempo: 5 minutos</Text>
+
+            <Text style={styles.modalDetalle}>
+              Estado: {juegosCompletados.has(juegoSeleccionado.id) ? 'Completado' : 'No completado'}
+            </Text>
+
+            <TouchableOpacity
+              style={styles.botonEmpezar}
+              onPress={() => {
+                const id = juegoSeleccionado.id;
+                const tipo = juegoSeleccionado.tipo;
+                setJuegoSeleccionado(null);
+                router.push({ pathname: '../Juego', params: { id, tipo } });
+              }}
+            >
+              <Text style={styles.textoBotonEmpezar}>Empezar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.botonCerrarModal}
+              onPress={() => setJuegoSeleccionado(null)}
+            >
+              <Text style={styles.textoBotonCerrar}>Atrás</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* ALERTA DE BLOQUEO */}
+      {alertaBloqueo && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.alertaContenido}>
+            <Ionicons name="lock-closed" size={48} color="#F5C518" />
+            <Text style={styles.alertaTitulo}>Nivel bloqueado</Text>
+            <Text style={styles.alertaTexto}>
+              Completa el nivel anterior para desbloquear este.
+            </Text>
+            <TouchableOpacity
+              style={styles.botonEmpezar}
+              onPress={() => setAlertaBloqueo(false)}
+            >
+              <Text style={styles.textoBotonEmpezar}>Entendido</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* NAVBAR */}
-      <View style={styles.navbar}>
+      <View style={[styles.navbar, { backgroundColor: colores.fondoTarjeta, borderTopColor: modoOscuro ? '#333' : '#e0e0e0' }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/inicio')}>
-          <Ionicons name="home" size={22} color="#888" />
-          <Text style={styles.navTexto}>Inicio</Text>
+          <Ionicons name="home" size={22} color={colores.textoSecundario} />
+          <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Inicio</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/inicio')}>    
-          <Ionicons name="time" size={22} color="#888" />
-          <Text style={styles.navTexto}>Historial</Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Historial')}>
+          <Ionicons name="time" size={22} color={colores.textoSecundario} />
+          <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Historial</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/inicio')}>
-          <Ionicons name="person" size={22} color="#888" />
-          <Text style={styles.navTexto}>Perfil</Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Perfil')}>
+          <Ionicons name="person" size={22} color={colores.textoSecundario} />
+          <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Perfil</Text>
         </TouchableOpacity>
       </View>
 
@@ -217,7 +318,7 @@ export default function ModuloJuego() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { flex: 1, backgroundColor: '#FDF8EC' },
+  wrapper: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -260,11 +361,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#1B3A6B',
   },
   bannerTexto: {
-  fontSize: 15,
-  fontWeight: 'bold',
-  color: '#1B3A6B',  
-  textAlign: 'center',
-},
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#1B3A6B',
+    textAlign: 'center',
+  },
   zigzagContainer: {
     paddingVertical: 8,
     gap: 24,
@@ -285,8 +386,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  octagonoNivelFinal: {
-    borderColor: '#1B3A6B',
+  octagonoBloqueado: {
+    borderColor: '#999',
+    opacity: 0.6,
   },
   octagonoTitulo: {
     fontSize: 11,
@@ -295,15 +397,86 @@ const styles = StyleSheet.create({
     marginTop: 8,
     maxWidth: 90,
   },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    zIndex: 200,
+  },
+  modalContenido: {
+    backgroundColor: '#1B3A6B',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    gap: 12,
+  },
+  modalTitulo: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  modalDescripcion: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    lineHeight: 20,
+  },
+  modalDetalle: {
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  botonEmpezar: {
+    backgroundColor: '#F5C518',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 12,
+    alignSelf: 'center',
+    paddingHorizontal: 50,
+  },
+  textoBotonEmpezar: {
+    color: '#1a1a1a',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  botonCerrarModal: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  textoBotonCerrar: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 14,
+  },
+  alertaContenido: {
+    backgroundColor: '#1B3A6B',
+    borderRadius: 16,
+    padding: 28,
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+  },
+  alertaTitulo: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  alertaTexto: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
+  },
   navbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingVertical: 10,
     paddingBottom: 24,
-    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     position: 'absolute',
     bottom: 0,
     left: 0,

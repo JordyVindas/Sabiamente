@@ -20,6 +20,16 @@ export const obtenerModulosUsuario = async (uid: string): Promise<Set<string>> =
   return new Set(snap.docs.map((documento) => documento.id));
 };
 
+export const obtenerModulosEnProgreso = async (uid: string): Promise<number> => {
+  const snap = await getDocs(
+    query(
+      collection(db, 'usuarioModulos', uid, 'modulos'),
+      where('completado', '==', false)
+    )
+  );
+  return snap.size;
+};
+
 export const agregarModuloUsuario = async (uid: string, moduloId: string): Promise<void> => {
   // Obtener nombre del módulo
   const moduloSnap = await getDocs(
@@ -34,6 +44,8 @@ export const agregarModuloUsuario = async (uid: string, moduloId: string): Promi
       completado: false,
     }
   );
+
+  
 
   await registrarActividad(
     uid,

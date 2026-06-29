@@ -2,25 +2,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { useAccesibilidad } from '../context/AccesibilidadContext';
 import { auth } from '../service/firebaseConfig';
 import { Actividad, obtenerHistorial } from '../service/historialService';
+
 
 const iconoPorTipo: { [key: string]: string } = {
   modulo_agregado: 'add-circle',
   modulo_completado: 'checkmark-circle',
+  nivel_completado: 'flag',
   insignia: 'star',
 };
 
 const colorPorTipo: { [key: string]: string } = {
   modulo_agregado: '#F5C518',
   modulo_completado: '#F5C518',
+  nivel_completado: '#F5C518',
   insignia: '#F5C518',
 };
 
@@ -44,6 +48,8 @@ const obtenerNombreMes = (mes: number): string => {
 
 export default function Historial() {
   const router = useRouter();
+  const { colores, escalaFuente } = useAccesibilidad();
+
   const [actividades, setActividades] = useState<Actividad[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -70,7 +76,7 @@ export default function Historial() {
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { backgroundColor: colores.fondo }]}>
 
       {/* HEADER */}
       <View style={styles.header}>
@@ -82,7 +88,7 @@ export default function Historial() {
       </View>
 
       {cargando ? (
-        <ActivityIndicator size="large" color="#1B3A6B" style={styles.cargando} />
+        <ActivityIndicator size="large" color={colores.primario} style={styles.cargando} />
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorTexto}>{error}</Text>
@@ -95,26 +101,36 @@ export default function Historial() {
           contentContainerStyle={styles.contenido}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.seccionTitulo}>Actividades realizadas</Text>
+          <Text style={[styles.seccionTitulo, { fontSize: 18 * escalaFuente }]}>
+            Actividades realizadas
+          </Text>
 
           {actividades.length === 0 ? (
             <View style={styles.vacioCotainer}>
-              <Ionicons name="time-outline" size={60} color="#ccc" />
-              <Text style={styles.vacioTexto}>Aún no tienes actividades registradas</Text>
+              <Ionicons name="time-outline" size={60} color={colores.textoSecundario} />
+              <Text style={[styles.vacioTexto, { color: colores.textoSecundario }]}>
+                Aún no tienes actividades registradas
+              </Text>
             </View>
           ) : (
             actividades.map((actividad) => (
-              <View key={actividad.id} style={styles.tarjeta}>
+              <View key={actividad.id} style={[styles.tarjeta, { backgroundColor: colores.fondoTarjeta }]}>
                 <View style={styles.tarjetaHeader}>
                   <Ionicons
                     name={iconoPorTipo[actividad.tipo] as any || 'ellipse'}
                     size={18}
                     color={colorPorTipo[actividad.tipo] || '#F5C518'}
                   />
-                  <Text style={styles.tarjetaTitulo}>{actividad.titulo}</Text>
+                  <Text style={[styles.tarjetaTitulo, { fontSize: 15 * escalaFuente }]}>
+                    {actividad.titulo}
+                  </Text>
                 </View>
-                <Text style={styles.tarjetaDescripcion}>{actividad.descripcion}</Text>
-                <Text style={styles.tarjetaFecha}>{formatearFecha(actividad.fecha)}</Text>
+                <Text style={[styles.tarjetaDescripcion, { color: colores.textoSecundario, fontSize: 13 * escalaFuente }]}>
+                  {actividad.descripcion}
+                </Text>
+                <Text style={[styles.tarjetaFecha, { color: colores.textoSecundario }]}>
+                  {formatearFecha(actividad.fecha)}
+                </Text>
               </View>
             ))
           )}
@@ -122,18 +138,18 @@ export default function Historial() {
       )}
 
       {/* NAVBAR */}
-      <View style={styles.navbar}>
+      <View style={[styles.navbar, { backgroundColor: colores.fondoTarjeta, borderTopColor: colores.textoSecundario }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/inicio')}>
-          <Ionicons name="home" size={22} color="#888" />
-          <Text style={styles.navTexto}>Inicio</Text>
+          <Ionicons name="home" size={22} color={colores.textoSecundario} />
+          <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Inicio</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="time" size={22} color="#1B3A6B" />
-          <Text style={[styles.navTexto, styles.navActivo]}>Historial</Text>
+          <Ionicons name="time" size={22} color={colores.primario} />
+          <Text style={[styles.navTexto, { color: colores.primario, fontWeight: 'bold' }]}>Historial</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/inicio')}>
-          <Ionicons name="person" size={22} color="#888" />
-          <Text style={styles.navTexto}>Perfil</Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Perfil')}>
+          <Ionicons name="person" size={22} color={colores.textoSecundario} />
+          <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Perfil</Text>
         </TouchableOpacity>
       </View>
 
@@ -142,7 +158,7 @@ export default function Historial() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { flex: 1, backgroundColor: '#FDF8EC' },
+  wrapper: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -187,11 +203,9 @@ const styles = StyleSheet.create({
   },
   vacioTexto: {
     fontSize: 14,
-    color: '#888',
     textAlign: 'center',
   },
   tarjeta: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -210,12 +224,10 @@ const styles = StyleSheet.create({
   },
   tarjetaDescripcion: {
     fontSize: 13,
-    color: '#555',
     lineHeight: 18,
   },
   tarjetaFecha: {
     fontSize: 11,
-    color: '#aaa',
     marginTop: 4,
   },
   navbar: {
@@ -224,15 +236,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingBottom: 24,
-    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
   },
   navItem: { alignItems: 'center', gap: 2 },
-  navTexto: { fontSize: 11, color: '#888' },
+  navTexto: { fontSize: 11 },
   navActivo: { color: '#1B3A6B', fontWeight: 'bold' },
 });

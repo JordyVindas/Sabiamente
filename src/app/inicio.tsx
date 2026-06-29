@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -11,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useAccesibilidad } from '../context/AccesibilidadContext';
 import { auth } from '../service/firebaseConfig';
 import {
   agregarModuloUsuario,
@@ -21,6 +23,8 @@ import { Modulo } from '../types/Modulo';
 
 export default function Inicio() {
   const router = useRouter();
+  const { colores, escalaFuente, modoOscuro } = useAccesibilidad();
+
   const [misModulos, setMisModulos] = useState<Modulo[]>([]);
   const [descubrirModulos, setDescubrirModulos] = useState<Modulo[]>([]);
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -82,7 +86,7 @@ export default function Inicio() {
 
   const TarjetaModulo = ({ modulo }: { modulo: Modulo }) => (
     <TouchableOpacity
-      style={styles.tarjeta}
+      style={[styles.tarjeta, { backgroundColor: colores.fondoTarjeta }]}
       onPress={() => setModuloSeleccionado(modulo)}
     >
       <Image
@@ -90,14 +94,14 @@ export default function Inicio() {
         style={styles.tarjetaImagen}
         resizeMode="cover"
       />
-      <Text style={styles.tarjetaTitulo} numberOfLines={2}>
+      <Text style={[styles.tarjetaTitulo, { color: colores.texto, fontSize: 12 * escalaFuente }]} numberOfLines={2}>
         {modulo.titulo}
       </Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { backgroundColor: colores.fondo }]}>
 
       {/* HEADER */}
       <View style={styles.header}>
@@ -114,14 +118,27 @@ export default function Inicio() {
 
       {/* MENÚ HAMBURGUESA */}
       {menuAbierto && (
-        <View style={styles.menuDropdown}>
+        <View style={[styles.menuDropdown, { backgroundColor: colores.fondoTarjeta }]}>
           {['Notificaciones', 'Ajustes', 'Insignias', 'Accesibilidad'].map((item) => (
             <TouchableOpacity
               key={item}
               style={styles.menuItem}
-              onPress={() => setMenuAbierto(false)}
+              onPress={() => {
+                setMenuAbierto(false);
+                if (item === 'Insignias') {
+                  router.push('/Vitrina');
+                }
+                if (item === 'Ajustes') {
+                  router.push('/ajustes');
+                }
+                if (item === 'Accesibilidad') {
+                  router.push('/accesibilidad');
+                }
+              }}
             >
-              <Text style={styles.menuItemTexto}>{item}</Text>
+              <Text style={[styles.menuItemTexto, { color: colores.texto, fontSize: 14 * escalaFuente }]}>
+                {item}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -129,11 +146,11 @@ export default function Inicio() {
 
       {/* CONTENIDO */}
       {cargando ? (
-        <ActivityIndicator size="large" color="#1B3A6B" style={styles.cargando} />
+        <ActivityIndicator size="large" color={colores.primario} style={styles.cargando} />
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorTexto}>{error}</Text>
-          <TouchableOpacity style={styles.botonReintentar} onPress={cargarModulos}>
+          <TouchableOpacity style={[styles.botonReintentar, { backgroundColor: colores.primario }]} onPress={cargarModulos}>
             <Text style={styles.textoReintentar}>Reintentar</Text>
           </TouchableOpacity>
         </View>
@@ -142,9 +159,11 @@ export default function Inicio() {
           contentContainerStyle={styles.contenido}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.seccionTitulo}>Tus módulos del saber</Text>
+          <Text style={[styles.seccionTitulo, { color: colores.texto, fontSize: 16 * escalaFuente }]}>
+            Tus módulos del saber
+          </Text>
           {misModulos.length === 0 ? (
-            <Text style={styles.vacio}>Aún no tienes módulos agregados</Text>
+            <Text style={[styles.vacio, { color: colores.textoSecundario }]}>Aún no tienes módulos agregados</Text>
           ) : (
             <ScrollView
               horizontal
@@ -157,9 +176,11 @@ export default function Inicio() {
             </ScrollView>
           )}
 
-          <Text style={styles.seccionTitulo}>Descubrir nuevos módulos</Text>
+          <Text style={[styles.seccionTitulo, { color: colores.texto, fontSize: 16 * escalaFuente }]}>
+            Descubrir nuevos módulos
+          </Text>
           {descubrirModulos.length === 0 ? (
-            <Text style={styles.vacio}>No hay módulos nuevos por descubrir</Text>
+            <Text style={[styles.vacio, { color: colores.textoSecundario }]}>No hay módulos nuevos por descubrir</Text>
           ) : (
             <ScrollView
               horizontal
@@ -175,19 +196,18 @@ export default function Inicio() {
       )}
 
       {/* NAVBAR */}
-      <View style={styles.navbar}>
+      <View style={[styles.navbar, { backgroundColor: colores.fondoTarjeta, borderTopColor: modoOscuro ? '#333' : '#e0e0e0' }]}>
         <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcono}>🏠</Text>
-          <Text style={[styles.navTexto, styles.navActivo]}>Inicio</Text>
+          <Ionicons name="home" size={22} color={colores.primario} />
+          <Text style={[styles.navTexto, { color: colores.primario, fontWeight: 'bold' }]}>Inicio</Text>
         </TouchableOpacity>
-        {/* Arreglar Rutas */}
         <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Historial')}>
-          <Text style={styles.navIcono}>🕐</Text>
-          <Text style={styles.navTexto}>Historial</Text>
+          <Ionicons name="time" size={22} color={colores.textoSecundario} />
+          <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Historial</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/inicio')}>
-          <Text style={styles.navIcono}>👤</Text>
-          <Text style={styles.navTexto}>Perfil</Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Perfil')}>
+          <Ionicons name="person" size={22} color={colores.textoSecundario} />
+          <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Perfil</Text>
         </TouchableOpacity>
       </View>
 
@@ -201,20 +221,23 @@ export default function Inicio() {
         <TouchableWithoutFeedback onPress={() => setModuloSeleccionado(null)}>
           <View style={styles.modalFondo}>
             <TouchableWithoutFeedback>
-              <View style={styles.modalCuadro}>
+              <View style={[styles.modalCuadro, { backgroundColor: colores.fondoTarjeta }]}>
                 <Image
                   source={{ uri: moduloSeleccionado?.imagen }}
                   style={styles.modalImagen}
                   resizeMode="cover"
                 />
                 <View style={styles.modalContenido}>
-                  <Text style={styles.modalTitulo}>{moduloSeleccionado?.titulo}</Text>
+                  <Text style={[styles.modalTitulo, { color: colores.texto, fontSize: 18 * escalaFuente }]}>
+                    {moduloSeleccionado?.titulo}
+                  </Text>
                   <View style={styles.modalTipoBadge}>
                     <Text style={styles.modalTipoTexto}>{moduloSeleccionado?.tipo}</Text>
                   </View>
-                  <Text style={styles.modalDescripcion}>{moduloSeleccionado?.descripcion}</Text>
+                  <Text style={[styles.modalDescripcion, { color: colores.textoSecundario }]}>
+                    {moduloSeleccionado?.descripcion}
+                  </Text>
                 </View>
-                {/* Botones */}
                 <View style={styles.modalBotones}>
                   {esMiModulo ? (
                     <TouchableOpacity
@@ -266,7 +289,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
   },
-  wrapper: { flex: 1, backgroundColor: '#FDF8EC' },
+  wrapper: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -283,7 +306,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 100,
     right: 16,
-    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -299,23 +321,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
-  menuItemTexto: { fontSize: 14, color: '#1B3A6B' },
+  menuItemTexto: { fontSize: 14 },
   cargando: { flex: 1 },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   errorTexto: { fontSize: 14, color: '#E53935', textAlign: 'center', marginBottom: 16 },
   botonReintentar: {
-    backgroundColor: '#1B3A6B',
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 8,
   },
   textoReintentar: { color: '#fff', fontWeight: 'bold' },
   contenido: { paddingVertical: 20, paddingHorizontal: 16, paddingBottom: 80 },
-  seccionTitulo: { fontSize: 16, fontWeight: 'bold', color: '#1B3A6B', marginBottom: 12, marginTop: 8 },
+  seccionTitulo: { fontSize: 16, fontWeight: 'bold', marginBottom: 12, marginTop: 8 },
   filaModulos: { gap: 12, paddingBottom: 8 },
   tarjeta: {
     width: 140,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -325,17 +345,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   tarjetaImagen: { width: '100%', height: 100 },
-  tarjetaTitulo: { fontSize: 12, fontWeight: '600', color: '#1a1a1a', padding: 8 },
-  vacio: { fontSize: 13, color: '#888', marginBottom: 16, fontStyle: 'italic' },
+  tarjetaTitulo: { fontSize: 12, fontWeight: '600', padding: 8 },
+  vacio: { fontSize: 13, marginBottom: 16, fontStyle: 'italic' },
   navbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingVertical: 10,
     paddingBottom: 24,
-    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -343,7 +361,7 @@ const styles = StyleSheet.create({
   },
   navItem: { alignItems: 'center', gap: 2 },
   navIcono: { fontSize: 22 },
-  navTexto: { fontSize: 11, color: '#888' },
+  navTexto: { fontSize: 11 },
   navActivo: { color: '#1B3A6B', fontWeight: 'bold' },
   modalFondo: {
     flex: 1,
@@ -354,14 +372,13 @@ const styles = StyleSheet.create({
   },
   modalCuadro: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     overflow: 'hidden',
     elevation: 8,
   },
   modalImagen: { width: '100%', height: 180 },
   modalContenido: { padding: 16 },
-  modalTitulo: { fontSize: 18, fontWeight: 'bold', color: '#1B3A6B', marginBottom: 8 },
+  modalTitulo: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
   modalTipoBadge: {
     alignSelf: 'flex-start',
     backgroundColor: '#FDF8EC',
@@ -373,7 +390,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   modalTipoTexto: { fontSize: 12, color: '#1B3A6B', fontWeight: '600', textTransform: 'capitalize' },
-  modalDescripcion: { fontSize: 13, color: '#444', lineHeight: 20 },
+  modalDescripcion: { fontSize: 13, lineHeight: 20 },
   modalBotones: { padding: 16, paddingTop: 0, gap: 10 },
   botonAgregar: { backgroundColor: '#1B3A6B', paddingVertical: 13, borderRadius: 10, alignItems: 'center' },
   textoBotonAgregar: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },

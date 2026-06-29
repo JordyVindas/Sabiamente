@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAccesibilidad } from '../context/AccesibilidadContext';
 import { auth } from '../service/firebaseConfig';
 import { guardarResultado, obtenerDatosJuego, registrarIntento, verificarModuloCompleto } from '../service/sopaService';
 import { calcularTamano, Celda, generarGrilla, PalabraEnGrilla } from '../utils/generadorsopa';
@@ -28,6 +29,7 @@ const COLORES_PALABRAS = [
 
 export default function Juego() {
   const router = useRouter();
+  const { colores, escalaFuente, modoOscuro } = useAccesibilidad();
   const { id: juegoId } = useLocalSearchParams<{ id: string }>();
   const uid = auth.currentUser?.uid;
   const { width: ANCHO_PANTALLA } = Dimensions.get('window');
@@ -197,28 +199,40 @@ export default function Juego() {
   const estaSeleccionada = (fila: number, columna: number) =>
     seleccionActual.some((c) => c.fila === fila && c.columna === columna);
 
-  const handleGuardarYSalir = async () => {
-    if (!uid || !juegoId || !moduloId) return;
-    try {
-      setGuardando(true);
-      await guardarResultado(uid, juegoId, moduloId, puntaje);
-      await verificarModuloCompleto(uid, moduloId);
+const handleGuardarYSalir = async () => {
+  if (!uid || !juegoId || !moduloId) return;
+  try {
+    setGuardando(true);
+    await guardarResultado(uid, juegoId, moduloId, puntaje);
+    const resultado = await verificarModuloCompleto(uid, moduloId);
+
+    if (resultado.insigniaOtorgada) {
+      // Navega a la pantalla de entrega de insignia
+      router.replace({
+        pathname: '/entregaInsignia',
+        params: {
+          nombreInsignia: resultado.nombreInsignia || '',
+          moduloId: moduloId,
+        },
+      });
+    } else {
       router.back();
-    } catch (e) {
-      console.error('Error guardando resultado:', e);
-    } finally {
-      setGuardando(false);
     }
-  };
+  } catch (e) {
+    console.error('Error guardando resultado:', e);
+  } finally {
+    setGuardando(false);
+  }
+};
 
   if (cargando) return (
-    <View style={styles.centrado}>
-      <ActivityIndicator size="large" color="#1B3A6B" />
+    <View style={[styles.centrado, { backgroundColor: colores.fondo }]}>
+      <ActivityIndicator size="large" color={colores.primario} />
     </View>
   );
 
   if (error) return (
-    <View style={styles.centrado}>
+    <View style={[styles.centrado, { backgroundColor: colores.fondo }]}>
       <Text style={styles.errorTexto}>{error}</Text>
       <TouchableOpacity style={styles.botonReintentar} onPress={cargarJuego}>
         <Text style={styles.textoReintentar}>Reintentar</Text>
@@ -227,7 +241,7 @@ export default function Juego() {
   );
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { backgroundColor: colores.fondo }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
@@ -249,14 +263,17 @@ export default function Juego() {
         contentContainerStyle={styles.contenido}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.listaPalabras}>
-          <Text style={styles.listaTitulo}>Palabras a encontrar:</Text>
+        <View style={[styles.listaPalabras, { backgroundColor: colores.fondoTarjeta }]}>
+          <Text style={[styles.listaTitulo, { color: colores.texto, fontSize: 13 * escalaFuente }]}>
+            Palabras a encontrar:
+          </Text>
           <View style={styles.palabrasGrid}>
             {palabras.map(({ palabra, encontrada }) => (
               <View
                 key={palabra}
                 style={[
                   styles.palabraBadge,
+                  { backgroundColor: modoOscuro ? '#2A2A2A' : '#FDF8EC' },
                   encontrada && {
                     backgroundColor: colorPalabra[palabra] || 'rgba(46,125,50,0.2)',
                     borderColor: '#2E7D32',
@@ -265,6 +282,7 @@ export default function Juego() {
               >
                 <Text style={[
                   styles.palabraTexto,
+                  { color: modoOscuro ? '#FFFFFF' : '#1B3A6B' },
                   encontrada && styles.palabraEncontradaTexto,
                 ]}>
                   {encontrada ? `✓ ${palabra}` : palabra}
@@ -281,7 +299,7 @@ export default function Juego() {
               grillaLayout.current = { x: pageX, y: pageY, width: _w, height: _h };
             });
           }}
-          style={styles.grillaContainer}
+          style={[styles.grillaContainer, { backgroundColor: modoOscuro ? '#2A2A2A' : '#FFFFFF' }]}
           {...panResponder.panHandlers}
         >
           {grilla.map((fila, f) => (
@@ -295,14 +313,14 @@ export default function Juego() {
                     key={c}
                     style={[
                       styles.celda,
-                      { width: TAMANO_CELDA, height: TAMANO_CELDA },
+                      { width: TAMANO_CELDA, height: TAMANO_CELDA, borderColor: modoOscuro ? '#444' : '#e0e0e0' },
                       colorFondo ? { backgroundColor: colorFondo } : null,
                       seleccionada ? styles.celdaSeleccionada : null,
                     ]}
                   >
                     <Text style={[
                       styles.letraCelda,
-                      { fontSize: TAMANO_CELDA * 0.45 },
+                      { fontSize: TAMANO_CELDA * 0.45, color: modoOscuro ? '#FFFFFF' : '#1a1a1a' },
                       celda.encontrada && styles.letraEncontrada,
                       seleccionada && styles.letraSeleccionada,
                     ]}>
@@ -356,7 +374,7 @@ export default function Juego() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { flex: 1, backgroundColor: '#FDF8EC' },
+  wrapper: { flex: 1 },
   centrado: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   errorTexto: { fontSize: 14, color: '#E53935', textAlign: 'center', marginBottom: 16 },
   botonReintentar: {

@@ -4,6 +4,7 @@ export interface Juego {
   faseId: string;
   titulo: string;
   tipo: string;
+  descripcion: string;
   icono: string;
   orden: number;
   activo: boolean;
