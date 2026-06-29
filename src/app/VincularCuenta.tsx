@@ -1,19 +1,22 @@
 import { useState } from 'react';
+import { useAccesibilidad } from '../context/AccesibilidadContext';
 import { iniciarSesion } from '../service/authService';
+
+import { useRouter } from 'expo-router';
 import {
-    View,
     Image,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    StyleSheet,
-    KeyboardAvoidingView,
-    Platform,
+    View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 
 export default function VincularCuenta() {
     const router = useRouter();
+    const { cargarPreferencias } = useAccesibilidad();
 
     const [correo, setCorreo] = useState('');
     const [contrasena, setContrasena] = useState('');
@@ -46,6 +49,7 @@ export default function VincularCuenta() {
         if (Object.keys(nuevosErrores).length === 0) {
             try {
                 await iniciarSesion(correo, contrasena);
+                await cargarPreferencias();
                 router.replace('/inicio');
             } catch (error: any) {
                 if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
