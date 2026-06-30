@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, query, setDoc, Timestamp, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, setDoc, Timestamp, where } from 'firebase/firestore';
 import { Modulo } from '../types/Modulo';
 import { db } from './firebaseConfig';
 import { registrarActividad } from './historialService';
@@ -30,8 +30,33 @@ export const obtenerModulosEnProgreso = async (uid: string): Promise<number> => 
   return snap.size;
 };
 
+export const obtenerModulosActivosConTitulo = async (
+  uid: string
+): Promise<{ id: string; titulo: string }[]> => {
+  const usuarioSnap = await getDocs(
+    query(
+      collection(db, 'usuarioModulos', uid, 'modulos'),
+      where('completado', '==', false)
+    )
+  );
+
+  const resultado: { id: string; titulo: string }[] = [];
+
+  for (const docu of usuarioSnap.docs) {
+    const moduloId = docu.id;
+    const moduloSnap = await getDoc(doc(db, 'modulos', moduloId));
+    if (moduloSnap.exists()) {
+      resultado.push({
+        id: moduloId,
+        titulo: moduloSnap.data().titulo || 'Módulo',
+      });
+    }
+  }
+
+  return resultado;
+};
+
 export const agregarModuloUsuario = async (uid: string, moduloId: string): Promise<void> => {
-  // Obtener nombre del módulo
   const moduloSnap = await getDocs(
     query(collection(db, 'modulos'), where('__name__', '==', moduloId))
   );
@@ -44,8 +69,6 @@ export const agregarModuloUsuario = async (uid: string, moduloId: string): Promi
       completado: false,
     }
   );
-
-  
 
   await registrarActividad(
     uid,

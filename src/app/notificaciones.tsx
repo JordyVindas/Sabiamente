@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,52 +11,76 @@ import {
 } from 'react-native';
 import { useAccesibilidad } from '../context/AccesibilidadContext';
 import { auth } from '../service/firebaseConfig';
-import { InsigniaGanada, obtenerInsigniasGanadas } from '../service/insigniaService';
-import { obtenerProgresoUsuario } from '../service/perfilService';
+import { Notificacion, obtenerNotificaciones } from '../service/notificacionService';
 
-const formatearFecha = (timestamp: any): string => {
-  if (!timestamp) return '';
-  const fecha = timestamp.toDate();
-  const dia = fecha.getDate().toString().padStart(2, '0');
-  const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-  const anio = fecha.getFullYear();
-  return `${dia}/${mes}/${anio}`;
+const iconoPorTipo: { [key: string]: string } = {
+  logro: 'flag',
+  recordatorio: 'notifications',
 };
 
-export default function Vitrina() {
+export default function Notificaciones() {
   const router = useRouter();
   const { colores, escalaFuente, modoOscuro } = useAccesibilidad();
   const uid = auth.currentUser?.uid;
 
-  const [nivel, setNivel] = useState(1);
-  const [insignias, setInsignias] = useState<InsigniaGanada[]>([]);
+  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    cargarVitrina();
+    cargarNotificaciones();
   }, []);
 
-  const cargarVitrina = async () => {
+  const cargarNotificaciones = async () => {
     if (!uid) return;
     try {
       setCargando(true);
       setError('');
-
-      const [progreso, insigniasData] = await Promise.all([
-        obtenerProgresoUsuario(uid),
-        obtenerInsigniasGanadas(uid),
-      ]);
-
-      setNivel(progreso.nivel);
-      setInsignias(insigniasData);
+      const data = await obtenerNotificaciones(uid);
+      setNotificaciones(data);
     } catch (e) {
-      console.error('Error cargando vitrina:', e);
-      setError('No se pudo cargar la vitrina. Intenta de nuevo.');
+      console.error('Error cargando notificaciones:', e);
+      setError('No se pudieron cargar las notificaciones.');
     } finally {
       setCargando(false);
     }
   };
+
+  // Separar en "Hoy" y "Pasadas"
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const notifHoy = notificaciones.filter((n) => {
+    const fecha = n.fecha.toDate();
+    return fecha >= hoy;
+  });
+
+  const notifPasadas = notificaciones.filter((n) => {
+    const fecha = n.fecha.toDate();
+    return fecha < hoy;
+  });
+
+  const TarjetaNotificacion = ({ notif }: { notif: Notificacion }) => (
+    <View style={[styles.tarjeta, { backgroundColor: colores.fondoTarjeta }]}>
+      <View style={styles.tarjetaHeader}>
+        <View style={styles.iconoContainer}>
+          <Ionicons
+            name={(iconoPorTipo[notif.tipo] || 'notifications') as any}
+            size={20}
+            color="#1B3A6B"
+          />
+        </View>
+        <View style={styles.tarjetaTextos}>
+          <Text style={[styles.tarjetaTitulo, { fontSize: 14 * escalaFuente }]}>
+            {notif.titulo}
+          </Text>
+          <Text style={[styles.tarjetaDescripcion, { color: colores.textoSecundario, fontSize: 12 * escalaFuente }]}>
+            {notif.descripcion}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <View style={[styles.wrapper, { backgroundColor: colores.fondo }]}>
@@ -67,64 +90,53 @@ export default function Vitrina() {
         <TouchableOpacity onPress={() => router.back()} style={styles.botonVolver}>
           <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitulo}>Nivel {nivel} de conocimiento</Text>
+        <Text style={styles.headerTitulo}>Notificaciones</Text>
         <View style={{ width: 32 }} />
       </View>
 
       {cargando ? (
         <ActivityIndicator size="large" color={colores.primario} style={styles.cargando} />
       ) : error ? (
-        <View style={[styles.errorContainer, { backgroundColor: colores.fondo }]}>
+        <View style={styles.errorContainer}>
           <Text style={styles.errorTexto}>{error}</Text>
-          <TouchableOpacity style={styles.botonReintentar} onPress={cargarVitrina}>
+          <TouchableOpacity style={styles.botonReintentar} onPress={cargarNotificaciones}>
             <Text style={styles.textoReintentar}>Reintentar</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={[styles.contenido, { backgroundColor: colores.fondo }]}
-          showsVerticalScrollIndicator={true}
+          contentContainerStyle={styles.contenido}
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={[styles.tituloSeccion, { color: colores.texto, fontSize: 22 * escalaFuente }]}>
-            Tus Insignias
-          </Text>
-
-          {insignias.length === 0 ? (
+          {notificaciones.length === 0 ? (
             <View style={styles.vacioContainer}>
-              <Ionicons name="ribbon-outline" size={60} color={colores.textoSecundario} />
+              <Ionicons name="notifications-off-outline" size={60} color={colores.textoSecundario} />
               <Text style={[styles.vacioTexto, { color: colores.textoSecundario }]}>
-                Aún no has ganado insignias
+                No tienes notificaciones
               </Text>
             </View>
           ) : (
-            insignias.map((insignia) => (
-              <View
-                key={insignia.id}
-                style={[
-                  styles.insigniaRow,
-                  { backgroundColor: modoOscuro ? '#2A2A2A' : '#FFFFFF' },
-                ]}
-              >
-                <View style={[
-                  styles.insigniaCuadro,
-                  { backgroundColor: modoOscuro ? '#333' : '#F0EDE4' },
-                ]}>
-                  <Image
-                    source={{ uri: insignia.imagen }}
-                    style={styles.insigniaImagen}
-                    resizeMode="cover"
-                  />
-                </View>
-                <View style={styles.insigniaInfo}>
-                  <Text style={[styles.moduloTexto, { color: colores.texto, fontSize: 15 * escalaFuente }]}>
-                    Módulo: {insignia.nombreModulo}
-                  </Text>
-                  <Text style={[styles.fechaTexto, { color: colores.textoSecundario, fontSize: 13 * escalaFuente }]}>
-                    Fecha: {formatearFecha(insignia.fechaObtenida)}
-                  </Text>
-                </View>
-              </View>
-            ))
+            <>
+              {/* HOY */}
+              {notifHoy.length > 0 && (
+                <>
+                  <Text style={[styles.seccionTitulo, { fontSize: 18 * escalaFuente }]}>Hoy</Text>
+                  {notifHoy.map((notif) => (
+                    <TarjetaNotificacion key={notif.id} notif={notif} />
+                  ))}
+                </>
+              )}
+
+              {/* PASADAS */}
+              {notifPasadas.length > 0 && (
+                <>
+                  <Text style={[styles.seccionTitulo, { fontSize: 18 * escalaFuente }]}>Pasadas</Text>
+                  {notifPasadas.map((notif) => (
+                    <TarjetaNotificacion key={notif.id} notif={notif} />
+                  ))}
+                </>
+              )}
+            </>
           )}
         </ScrollView>
       )}
@@ -157,12 +169,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 52,
-    paddingBottom: 16,
-    backgroundColor: '#0F2A52',
+    paddingBottom: 12,
+    backgroundColor: '#1B3A6B',
   },
   botonVolver: { width: 32 },
   headerTitulo: {
-    flex: 1,
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
@@ -179,53 +190,51 @@ const styles = StyleSheet.create({
   },
   textoReintentar: { color: '#fff', fontWeight: 'bold' },
   contenido: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    padding: 16,
     paddingBottom: 90,
-    flexGrow: 1,
   },
-  tituloSeccion: {
-    fontSize: 22,
+  seccionTitulo: {
+    fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 24,
+    color: '#F5C518',
+    marginBottom: 12,
+    marginTop: 16,
   },
-  insigniaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    gap: 16,
+  tarjeta: {
+    borderRadius: 12,
     padding: 14,
-    borderRadius: 14,
+    marginBottom: 10,
     elevation: 2,
   },
-  insigniaCuadro: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+  tarjetaHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  iconoContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#E8EEF4',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
   },
-  insigniaImagen: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  insigniaInfo: {
+  tarjetaTextos: {
     flex: 1,
-    gap: 8,
+    gap: 4,
   },
-  moduloTexto: {
-    fontSize: 15,
+  tarjetaTitulo: {
+    fontSize: 14,
     fontWeight: 'bold',
+    color: '#F5C518',
   },
-  fechaTexto: {
-    fontSize: 13,
+  tarjetaDescripcion: {
+    fontSize: 12,
+    lineHeight: 18,
   },
   vacioContainer: {
     alignItems: 'center',
-    marginTop: 60,
+    marginTop: 80,
     gap: 16,
   },
   vacioTexto: {

@@ -23,7 +23,7 @@ import { auth } from '../service/firebaseConfig';
 import { guardarFotoPerfil, obtenerDatosUsuario } from '../service/perfilService';
 
 export default function Ajustes() {
-    const { colores, escalaFuente } = useAccesibilidad();
+    const { colores, escalaFuente, modoOscuro } = useAccesibilidad();
 
     const [subiendoFoto, setSubiendoFoto] = useState(false);
 
@@ -194,7 +194,7 @@ export default function Ajustes() {
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.botonAmarillo} onPress={() => setModalRecuperar(true)}>
-                            <Ionicons name="card" size={20} color="#FFFFFF" />
+                            <Ionicons name="key" size={20} color="#FFFFFF" />
                             <Text style={styles.botonTexto}>Recuperar Contraseña</Text>
                             <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
                         </TouchableOpacity>
@@ -202,12 +202,6 @@ export default function Ajustes() {
                         <TouchableOpacity style={styles.botonAmarillo}>
                             <Ionicons name="globe" size={20} color="#FFFFFF" />
                             <Text style={styles.botonTexto}>Lenguaje</Text>
-                            <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.botonAmarillo}>
-                            <Ionicons name="shield-checkmark" size={20} color="#FFFFFF" />
-                            <Text style={styles.botonTexto}>Seguridad y control</Text>
                             <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
                         </TouchableOpacity>
 
@@ -222,9 +216,9 @@ export default function Ajustes() {
                             <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.botonAzul} onPress={handleSalir}>
-                            <Ionicons name="exit" size={20} color="#FFFFFF" />
-                            <Text style={styles.botonTexto}>Salir</Text>
+                        <TouchableOpacity style={styles.botonRojo} onPress={handleSalir}>
+                            <Ionicons name="log-out" size={20} color="#FFFFFF" />
+                            <Text style={styles.botonTexto}>Cerrar sesión</Text>
                             <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
                         </TouchableOpacity>
 
@@ -296,18 +290,18 @@ export default function Ajustes() {
             </Modal>
 
             {/* NAVBAR */}
-            <View style={styles.navbar}>
+            <View style={[styles.navbar, { backgroundColor: colores.fondoTarjeta, borderTopColor: modoOscuro ? '#333' : '#e0e0e0' }]}>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/inicio')}>
-                    <Ionicons name="home" size={22} color="#FFFFFF" />
-                    <Text style={styles.navTexto}>Inicio</Text>
+                    <Ionicons name="home" size={22} color={colores.textoSecundario} />
+                    <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Inicio</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Historial')}>
-                    <Ionicons name="time" size={22} color="#FFFFFF" />
-                    <Text style={styles.navTexto}>Historial</Text>
+                    <Ionicons name="time" size={22} color={colores.textoSecundario} />
+                    <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Historial</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Perfil')}>
-                    <Ionicons name="person" size={22} color="#FFFFFF" />
-                    <Text style={styles.navTexto}>Perfil</Text>
+                    <Ionicons name="person" size={22} color={colores.textoSecundario} />
+                    <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Perfil</Text>
                 </TouchableOpacity>
             </View>
 
@@ -366,7 +360,6 @@ const styles = StyleSheet.create({
         borderColor: '#FFFFFF',
     },
     tarjeta: {
-        backgroundColor: '#FDF8EC',
         borderRadius: 24,
         alignItems: 'center',
         paddingTop: 60,
@@ -376,42 +369,50 @@ const styles = StyleSheet.create({
     nombre: {
         fontSize: 22,
         fontWeight: 'bold',
-        color: '#1a1a1a',
     },
     correo: {
         fontSize: 14,
-        color: '#999',
         marginTop: 2,
         marginBottom: 8,
     },
     seccionTitulo: {
         fontSize: 17,
         fontWeight: 'bold',
-        color: '#1a1a1a',
         alignSelf: 'flex-start',
-        marginTop: 20,
+        marginTop: 24,
         marginBottom: 14,
     },
     botonAmarillo: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#F5C518',
-        borderRadius: 10,
-        paddingVertical: 16,
+        borderRadius: 12,
+        paddingVertical: 14,
         paddingHorizontal: 16,
         width: '100%',
-        marginBottom: 12,
+        marginBottom: 10,
         gap: 12,
     },
     botonAzul: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#1B6FC4',
-        borderRadius: 10,
-        paddingVertical: 16,
+        borderRadius: 12,
+        paddingVertical: 14,
         paddingHorizontal: 16,
         width: '100%',
-        marginBottom: 12,
+        marginBottom: 10,
+        gap: 12,
+    },
+    botonRojo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1B6FC4',
+        borderRadius: 12,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        width: '100%',
+        marginBottom: 10,
         gap: 12,
     },
     botonTexto: {
@@ -426,14 +427,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 10,
         paddingBottom: 24,
-        backgroundColor: '#3B7FC4',
+        borderTopWidth: 1,
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
     },
     navItem: { alignItems: 'center', gap: 2 },
-    navTexto: { fontSize: 11, color: '#FFFFFF' },
+    navTexto: { fontSize: 11 },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',

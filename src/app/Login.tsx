@@ -1,5 +1,5 @@
-import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Login() {
   const router = useRouter();
@@ -42,11 +42,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   logo: {
-    width: 180,
-    height: 180,
-    backgroundColor: '#F0EDE4',
-    borderRadius: 12,
-  },
+  width: 150,
+  height: 150,
+}
+,
   titulo: {
     fontSize: 22,
     fontWeight: 'bold',

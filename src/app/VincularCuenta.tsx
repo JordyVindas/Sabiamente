@@ -1,6 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { useAccesibilidad } from '../context/AccesibilidadContext';
 import { iniciarSesion } from '../service/authService';
+import { auth } from '../service/firebaseConfig';
+import { obtenerModulosActivosConTitulo } from '../service/moduloService';
+import { generarRecordatorios } from '../service/notificacionService';
 
 import { useRouter } from 'expo-router';
 import {
@@ -50,6 +54,17 @@ export default function VincularCuenta() {
             try {
                 await iniciarSesion(correo, contrasena);
                 await cargarPreferencias();
+
+                try {
+                    const uidActual = auth.currentUser?.uid;
+                    if (uidActual) {
+                        const modulosActivos = await obtenerModulosActivosConTitulo(uidActual);
+                        await generarRecordatorios(uidActual, modulosActivos);
+                    }
+                } catch (e) {
+                    console.error('Error generando recordatorios:', e);
+                }
+
                 router.replace('/inicio');
             } catch (error: any) {
                 if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
@@ -69,11 +84,11 @@ export default function VincularCuenta() {
             {/* HEADER */}
             <View style={styles.header}>
                 <Image
-                    source={require('../../assets/images/LogoFondoBlanco.jpg')}
+                    source={require('../../assets/images/LogoFondoLimpio.png')}
                     style={styles.logo}
                     resizeMode="contain"
                 />
-                <Text style={styles.appNombre}>SabiaMente</Text>
+
             </View>
 
             {/* FORMULARIO */}
@@ -110,7 +125,11 @@ export default function VincularCuenta() {
                         }}
                     />
                     <TouchableOpacity onPress={() => setMostrarContrasena(!mostrarContrasena)}>
-                        <Text style={styles.icono}>{mostrarContrasena ? '🙈' : '👁️'}</Text>
+                        <Ionicons
+                            name={mostrarContrasena ? 'eye-off' : 'eye'}
+                            size={20}
+                            color="#888"
+                        />
                     </TouchableOpacity>
                 </View>
                 {errores.contrasena ? <Text style={styles.textoError}>{errores.contrasena}</Text> : null}
@@ -122,6 +141,10 @@ export default function VincularCuenta() {
 
             {/* FOOTER */}
             <View style={styles.footer}>
+                <TouchableOpacity onPress={() => router.push('/recuperarContrasena')}>
+                    <Text style={styles.textoRecuperar}>¿Olvidaste tu contraseña?</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.botonVincular} onPress={handleVincular}>
                     <Text style={styles.textoBotonVincular}>Vincular</Text>
                 </TouchableOpacity>
@@ -150,10 +173,8 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     logo: {
-        width: 120,
-        height: 120,
-        backgroundColor: '#F0EDE4',
-        borderRadius: 12,
+        width: 300,
+        height: 300,
     },
     appNombre: {
         fontSize: 18,
@@ -185,21 +206,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#1a1a1a',
     },
-    icono: {
-        fontSize: 16,
-        marginLeft: 6,
-    },
     textoError: {
         fontSize: 11,
         color: '#E53935',
         marginTop: -8,
         marginBottom: 8,
+        textAlign: 'center',
     },
     footer: {
         paddingHorizontal: 40,
         paddingTop: 32,
-        alignItems: 'center',
-        gap: 12,
+        gap: 8,
     },
     botonVincular: {
         backgroundColor: '#F5C518',
@@ -213,9 +230,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    textoRecuperar: {
+        fontSize: 13,
+        color: '#888',
+        alignSelf: 'flex-start',
+    },
     textoCuenta: {
         fontSize: 13,
         color: '#888',
+        alignSelf: 'flex-start',
+        marginTop: 8,
     },
     botonCrear: {
         backgroundColor: '#1B3A6B',

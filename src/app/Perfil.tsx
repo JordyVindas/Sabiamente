@@ -102,12 +102,16 @@ export default function Perfil() {
               </Text>
               <Ionicons name="chevron-up" size={22} color={colores.texto} />
             </View>
-            <Text style={[styles.nivelTexto, { color: colores.textoSecundario, fontSize: 14 * escalaFuente }]}>
-              Nivel {nivel}
-            </Text>
-            <Text style={[styles.rangoTexto, { color: colores.textoSecundario, fontSize: 14 * escalaFuente }]}>
-              Grado: {rango}
-            </Text>
+
+            <View style={styles.nivelGradoContainer}>
+              <Text style={[styles.rangoTexto, { color: colores.textoSecundario, fontSize: 14 * escalaFuente }]}>
+                Grado: {rango}
+              </Text>
+              <Text style={[styles.separador, { color: colores.textoSecundario }]}>|</Text>
+              <Text style={[styles.nivelTexto, { color: colores.textoSecundario, fontSize: 14 * escalaFuente }]}>
+                Nivel {nivel}
+              </Text>
+            </View>
 
             {/* VITRINA */}
             <Text style={[styles.seccionTitulo, { color: colores.texto, fontSize: 17 * escalaFuente }]}>
@@ -117,11 +121,14 @@ export default function Perfil() {
             <View style={styles.vitrinaGrid}>
               {insignias.map((insignia) => (
                 <View key={insignia.id} style={styles.vitrinaItem}>
-                  <View style={[styles.insigniaCuadro, { backgroundColor: modoOscuro ? '#2A2A2A' : '#FFFFFF' }]}>
+                  <View style={[
+                    styles.insigniaCuadro,
+                    { backgroundColor: modoOscuro ? '#333' : '#F0EDE4' },
+                  ]}>
                     <Image
                       source={{ uri: insignia.imagen }}
                       style={styles.insigniaImagen}
-                      resizeMode="contain"
+                      resizeMode="cover"
                     />
                   </View>
                   <View style={[styles.circuloVacio, { borderColor: colores.texto }]} />
@@ -146,18 +153,18 @@ export default function Perfil() {
       )}
 
       {/* NAVBAR */}
-      <View style={styles.navbar}>
+      <View style={[styles.navbar, { backgroundColor: colores.fondoTarjeta, borderTopColor: modoOscuro ? '#333' : '#e0e0e0' }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/inicio')}>
-          <Ionicons name="home" size={22} color="#FFFFFF" />
-          <Text style={styles.navTexto}>Inicio</Text>
+          <Ionicons name="home" size={22} color={colores.textoSecundario} />
+          <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Inicio</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Historial')}>
-          <Ionicons name="time" size={22} color="#FFFFFF" />
-          <Text style={styles.navTexto}>Historial</Text>
+          <Ionicons name="time" size={22} color={colores.textoSecundario} />
+          <Text style={[styles.navTexto, { color: colores.textoSecundario }]}>Historial</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person" size={22} color="#FFFFFF" />
-          <Text style={[styles.navTexto, styles.navActivo]}>Perfil</Text>
+          <Ionicons name="person" size={22} color={colores.primario} />
+          <Text style={[styles.navTexto, { color: colores.primario, fontWeight: 'bold' }]}>Perfil</Text>
         </TouchableOpacity>
       </View>
 
@@ -226,13 +233,20 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
   },
+  nivelGradoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+  },
   nivelTexto: {
     fontSize: 14,
-    marginTop: 12,
+  },
+  separador: {
+    fontSize: 14,
   },
   rangoTexto: {
     fontSize: 14,
-    marginTop: 2,
   },
   seccionTitulo: {
     fontSize: 17,
@@ -246,33 +260,35 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     width: '100%',
-    rowGap: 20,
+    rowGap: 24,
   },
   vitrinaItem: {
     width: '45%',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
   },
   insigniaCuadro: {
-    width: 95,
-    height: 95,
-    borderRadius: 8,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+    elevation: 2,
   },
   insigniaCuadroVacio: {
-    width: 95,
-    height: 95,
-    backgroundColor: 'transparent',
+    width: 90,
+    height: 90,
   },
   insigniaImagen: {
-    width: 70,
-    height: 70,
+    width: 85,
+    height: 85,
+    borderRadius: 42,
   },
   circuloVacio: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 2,
     backgroundColor: 'transparent',
   },
@@ -288,13 +304,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingBottom: 24,
-    backgroundColor: '#3B7FC4',
+    borderTopWidth: 1,
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
   },
   navItem: { alignItems: 'center', gap: 2 },
-  navTexto: { fontSize: 11, color: '#FFFFFF' },
-  navActivo: { color: '#FFFFFF', fontWeight: 'bold' },
+  navTexto: { fontSize: 11 },
 });

@@ -105,14 +105,10 @@ export default function Inicio() {
 
       {/* HEADER */}
       <View style={styles.header}>
-        <Image
-          source={require('../../assets/images/LogoFondoLimpio.png')}
-          style={styles.logoHeader}
-          resizeMode="contain"
-        />
+        <View style={{ width: 26 }} />
         <Text style={styles.headerTitulo}>INICIO</Text>
         <TouchableOpacity onPress={() => setMenuAbierto(!menuAbierto)}>
-          <Text style={styles.menuIcono}>☰</Text>
+          <Ionicons name="menu" size={26} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
@@ -134,6 +130,10 @@ export default function Inicio() {
                 if (item === 'Accesibilidad') {
                   router.push('/accesibilidad');
                 }
+                if (item === 'Notificaciones') {
+                  router.push('/notificaciones');
+                }
+
               }}
             >
               <Text style={[styles.menuItemTexto, { color: colores.texto, fontSize: 14 * escalaFuente }]}>
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     backgroundColor: '#1B3A6B',
   },
-  logoHeader: { width: 40, height: 40 },
+  logoHeader: { width: 50, height: 50 },
   headerTitulo: { fontSize: 18, fontWeight: 'bold', color: '#FFFFFF' },
   menuIcono: { fontSize: 24, color: '#FFFFFF' },
   menuDropdown: {

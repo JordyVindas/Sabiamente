@@ -23,6 +23,8 @@ export default function RootLayout() {
         <Stack.Screen name="cambioCorrecto" options={{ headerShown: false }} />
         <Stack.Screen name="accesibilidad" options={{ headerShown: false }} />
         <Stack.Screen name="entregaInsignia" options={{ headerShown: false }} />
+        <Stack.Screen name="notificaciones" options={{ headerShown: false }} />
+        
 
       </Stack>
     </AccesibilidadProvider>

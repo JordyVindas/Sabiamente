@@ -2,6 +2,7 @@ import { collection, doc, getDoc, getDocs, query, setDoc, Timestamp, where } fro
 import { db } from './firebaseConfig';
 import { registrarActividad } from './historialService';
 import { obtenerInsigniaPorModulo, otorgarInsignia } from './insigniaService';
+import { crearNotificacion } from './notificacionService';
 
 const XP_POR_NIVEL = 50;
 
@@ -162,6 +163,13 @@ export const verificarModuloCompleto = async (
           'modulo_completado',
           'Monitoreo de módulo',
           `Has completado todos los niveles del módulo: ${nombreModulo}`,
+          moduloId
+        );
+        await crearNotificacion(
+          uid,
+          'logro',
+          'Llevas un progreso espectacular',
+          `Genial, has logrado completar el módulo: ${nombreModulo}. Que el límite sea tu propia ambición, sigue así.`,
           moduloId
         );
 

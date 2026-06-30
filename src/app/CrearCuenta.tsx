@@ -1,18 +1,19 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { registrarUsuario } from '../service/authService';
-import { guardarDatosUsuario } from '../service/userService';
 import {
-    View,
     Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    StyleSheet,
-    ScrollView,
-    KeyboardAvoidingView,
-    Platform,
+    View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { registrarUsuario } from '../service/authService';
+import { guardarDatosUsuario } from '../service/userService';
 
 export default function CrearCuenta() {
     const router = useRouter();
@@ -29,7 +30,6 @@ export default function CrearCuenta() {
     const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
     const [mostrarGenero, setMostrarGenero] = useState(false);
 
-    // Errores
     const [errores, setErrores] = useState<{ [key: string]: string }>({});
 
     const generosOpciones = ['Femenino', 'Masculino'];
@@ -46,7 +46,6 @@ export default function CrearCuenta() {
     };
 
     const validarFecha = (valor: string) => {
-        // Formato YYYY/MM/DD
         const regex = /^\d{4}\/\d{2}\/\d{2}$/;
         if (!regex.test(valor)) return false;
 
@@ -61,10 +60,8 @@ export default function CrearCuenta() {
     };
 
     const formatearFecha = (texto: string) => {
-        // Solo números
         const soloNumeros = texto.replace(/[^0-9]/g, '');
 
-        // Insertar / automáticamente
         let formateado = soloNumeros;
         if (soloNumeros.length > 4) {
             formateado = soloNumeros.slice(0, 4) + '/' + soloNumeros.slice(4);
@@ -117,23 +114,20 @@ export default function CrearCuenta() {
         setErrores(nuevosErrores);
 
         if (Object.keys(nuevosErrores).length === 0) {
-            console.log('Formulario válido, conectar con BD');
-            if (Object.keys(nuevosErrores).length === 0) {
-                try {
-                    const usuario = await registrarUsuario(correo, contrasena);
-                    await guardarDatosUsuario(usuario.uid, {
-                        nombre,
-                        correo,
-                        genero,
-                        fechaNacimiento,
-                    });
-                    router.replace('/inicio'); // o la pantalla que sigue
-                } catch (error: any) {
-                    if (error.code === 'auth/email-already-in-use') {
-                        setErrores({ correo: 'Este correo ya está registrado' });
-                    } else {
-                        setErrores({ correo: 'Ocurrió un error, intenta nuevamente' });
-                    }
+            try {
+                const usuario = await registrarUsuario(correo, contrasena);
+                await guardarDatosUsuario(usuario.uid, {
+                    nombre,
+                    correo,
+                    genero,
+                    fechaNacimiento,
+                });
+                router.replace('/inicio');
+            } catch (error: any) {
+                if (error.code === 'auth/email-already-in-use') {
+                    setErrores({ correo: 'Este correo ya está registrado' });
+                } else {
+                    setErrores({ correo: 'Ocurrió un error, intenta nuevamente' });
                 }
             }
         }
@@ -147,11 +141,10 @@ export default function CrearCuenta() {
             {/* HEADER FIJO */}
             <View style={styles.header}>
                 <Image
-                    source={require('../../assets/images/LogoFondoBlanco.jpg')}
+                    source={require('../../assets/images/LogoFondoLimpio.png')}
                     style={styles.logo}
                     resizeMode="contain"
                 />
-                <Text style={styles.appNombre}>SabiaMente</Text>
                 <Text style={styles.titulo}>Crear cuenta</Text>
             </View>
 
@@ -164,7 +157,7 @@ export default function CrearCuenta() {
                 {/* Nombre */}
                 <Text style={styles.label}>Nombre</Text>
                 <View style={[styles.inputContainer, errores.nombre && styles.inputError]}>
-                    <Text style={styles.icono}>👤</Text>
+                    <Ionicons name="person" size={18} color="#888" style={styles.iconoIzq} />
                     <TextInput
                         style={styles.input}
                         placeholder="Ej. Juan"
@@ -181,7 +174,7 @@ export default function CrearCuenta() {
                 {/* Correo */}
                 <Text style={styles.label}>Correo electrónico</Text>
                 <View style={[styles.inputContainer, errores.correo && styles.inputError]}>
-                    <Text style={styles.icono}>✉️</Text>
+                    <Ionicons name="mail" size={18} color="#888" style={styles.iconoIzq} />
                     <TextInput
                         style={styles.input}
                         placeholder="Ej. Juan@gmail.com"
@@ -200,7 +193,7 @@ export default function CrearCuenta() {
                 {/* Contraseña */}
                 <Text style={styles.label}>Contraseña</Text>
                 <View style={[styles.inputContainer, errores.contrasena && styles.inputError]}>
-                    <Text style={styles.icono}>🔒</Text>
+                    <Ionicons name="lock-closed" size={18} color="#888" style={styles.iconoIzq} />
                     <TextInput
                         style={styles.input}
                         placeholder="Contraseña"
@@ -213,7 +206,11 @@ export default function CrearCuenta() {
                         }}
                     />
                     <TouchableOpacity onPress={() => setMostrarContrasena(!mostrarContrasena)}>
-                        <Text style={styles.icono}>{mostrarContrasena ? '🙈' : '👁️'}</Text>
+                        <Ionicons
+                            name={mostrarContrasena ? 'eye-off' : 'eye'}
+                            size={20}
+                            color="#888"
+                        />
                     </TouchableOpacity>
                 </View>
                 {errores.contrasena ? (
@@ -225,7 +222,7 @@ export default function CrearCuenta() {
                 {/* Confirmar contraseña */}
                 <Text style={styles.label}>Confirmar contraseña</Text>
                 <View style={[styles.inputContainer, errores.confirmarContrasena && styles.inputError]}>
-                    <Text style={styles.icono}>🔒</Text>
+                    <Ionicons name="lock-closed" size={18} color="#888" style={styles.iconoIzq} />
                     <TextInput
                         style={styles.input}
                         placeholder="Contraseña nuevamente"
@@ -238,7 +235,11 @@ export default function CrearCuenta() {
                         }}
                     />
                     <TouchableOpacity onPress={() => setMostrarConfirmar(!mostrarConfirmar)}>
-                        <Text style={styles.icono}>{mostrarConfirmar ? '🙈' : '👁️'}</Text>
+                        <Ionicons
+                            name={mostrarConfirmar ? 'eye-off' : 'eye'}
+                            size={20}
+                            color="#888"
+                        />
                     </TouchableOpacity>
                 </View>
                 {errores.confirmarContrasena ? (
@@ -259,7 +260,11 @@ export default function CrearCuenta() {
                         editable={false}
                         pointerEvents="none"
                     />
-                    <Text style={styles.icono}>{mostrarGenero ? '∧' : '∨'}</Text>
+                    <Ionicons
+                        name={mostrarGenero ? 'chevron-up' : 'chevron-down'}
+                        size={20}
+                        color="#888"
+                    />
                 </TouchableOpacity>
                 {errores.genero ? <Text style={styles.textoError}>{errores.genero}</Text> : null}
                 {mostrarGenero && (
@@ -283,6 +288,7 @@ export default function CrearCuenta() {
                 {/* Fecha de nacimiento */}
                 <Text style={styles.label}>Fecha de nacimiento</Text>
                 <View style={[styles.inputContainer, errores.fechaNacimiento && styles.inputError]}>
+                    <Ionicons name="calendar" size={18} color="#888" style={styles.iconoIzq} />
                     <TextInput
                         style={styles.input}
                         placeholder="YYYY/MM/DD"
@@ -311,7 +317,9 @@ export default function CrearCuenta() {
                         setErrores((e) => ({ ...e, terminos: '' }));
                     }}
                 >
-                    <View style={[styles.checkbox, aceptaTerminos && styles.checkboxActivo]} />
+                    <View style={[styles.checkbox, aceptaTerminos && styles.checkboxActivo]}>
+                        {aceptaTerminos && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+                    </View>
                     <Text style={styles.checkboxTexto}>Aceptar términos y condiciones</Text>
                 </TouchableOpacity>
 
@@ -325,7 +333,9 @@ export default function CrearCuenta() {
                         setErrores((e) => ({ ...e, terminos: '' }));
                     }}
                 >
-                    <View style={[styles.checkbox, aceptaPoliticas && styles.checkboxActivo]} />
+                    <View style={[styles.checkbox, aceptaPoliticas && styles.checkboxActivo]}>
+                        {aceptaPoliticas && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+                    </View>
                     <Text style={styles.checkboxTexto}>Aceptar políticas de privacidad</Text>
                 </TouchableOpacity>
 
@@ -367,16 +377,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#FDF8EC',
     },
     logo: {
-        width: 100,
-        height: 100,
-        backgroundColor: '#F0EDE4',
-        borderRadius: 12,
-    },
-    appNombre: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1B3A6B',
-        marginTop: 4,
+        width: 200,
+        height: 200,
     },
     titulo: {
         fontSize: 22,
@@ -414,9 +416,8 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#1a1a1a',
     },
-    icono: {
-        fontSize: 16,
-        marginHorizontal: 4,
+    iconoIzq: {
+        marginRight: 8,
     },
     hint: {
         fontSize: 11,
@@ -464,6 +465,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         borderWidth: 2,
         borderColor: '#1B3A6B',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     checkboxActivo: {
         backgroundColor: '#1B3A6B',
@@ -480,7 +483,6 @@ const styles = StyleSheet.create({
         paddingBottom: 36,
         paddingTop: 12,
         backgroundColor: '#FDF8EC',
-        alignItems: 'center',
         gap: 10,
     },
     botonCrear: {
@@ -498,6 +500,7 @@ const styles = StyleSheet.create({
     textoCuenta: {
         fontSize: 13,
         color: '#1a1a1a',
+        alignSelf: 'flex-start',
     },
     botonIniciar: {
         backgroundColor: '#F5C518',
