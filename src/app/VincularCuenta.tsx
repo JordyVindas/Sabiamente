@@ -141,10 +141,7 @@ export default function VincularCuenta() {
 
             {/* FOOTER */}
             <View style={styles.footer}>
-                <TouchableOpacity onPress={() => router.push('/recuperarContrasena')}>
-                    <Text style={styles.textoRecuperar}>¿Olvidaste tu contraseña?</Text>
-                </TouchableOpacity>
-
+    
                 <TouchableOpacity style={styles.botonVincular} onPress={handleVincular}>
                     <Text style={styles.textoBotonVincular}>Vincular</Text>
                 </TouchableOpacity>
