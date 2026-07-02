@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { updatePassword } from 'firebase/auth';
 import { useState } from 'react';
 import {
-    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -18,7 +17,7 @@ import { auth } from '../service/firebaseConfig';
 
 export default function RecuperarContrasena() {
     const router = useRouter();
-    const { colores, escalaFuente, modoOscuro } = useAccesibilidad();
+    const { colores, escalaFuente } = useAccesibilidad();
 
     const [contrasena, setContrasena] = useState('');
     const [confirmarContrasena, setConfirmarContrasena] = useState('');
@@ -68,117 +67,119 @@ export default function RecuperarContrasena() {
 
     return (
         <KeyboardAvoidingView
-            style={[styles.wrapper, { backgroundColor: colores.fondo }]}
+            style={[styles.wrapper, { backgroundColor: colores.primario }]}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
             {/* HEADER */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: colores.primario }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.botonVolver}>
                     <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                <Image
-                    source={require('../../assets/images/LogoFondoLimpio.png')}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
+                <Text style={styles.headerTitulo}>Contraseña</Text>
+                <View style={{ width: 32 }} />
             </View>
 
             <ScrollView
-                contentContainerStyle={styles.contenido}
+                contentContainerStyle={styles.scrollContenido}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
-                <Text style={[styles.titulo, { color: colores.texto, fontSize: 22 * escalaFuente }]}>
-                    Cambiar contraseña
-                </Text>
+                <View style={[styles.tarjeta, { backgroundColor: colores.fondoTarjeta }]}>
 
-                {/* Contraseña nueva */}
-                <Text style={[styles.label, { color: colores.texto, fontSize: 16 * escalaFuente }]}>
-                    Contraseña nueva
-                </Text>
-                <View style={[
-                    styles.inputContainer,
-                    { backgroundColor: colores.fondoTarjeta, borderColor: colores.primario },
-                    errores.contrasena && styles.inputError,
-                ]}>
-                    <Ionicons name="lock-closed" size={18} color={colores.textoSecundario} style={styles.iconoIzq} />
-                    <TextInput
-                        style={[styles.input, { color: colores.texto }]}
-                        placeholder="Contraseña"
-                        placeholderTextColor={colores.textoSecundario}
-                        secureTextEntry={!mostrarContrasena}
-                        value={contrasena}
-                        onChangeText={(t) => {
-                            setContrasena(t);
-                            setErrores((e) => ({ ...e, contrasena: '' }));
-                        }}
-                    />
-                    <TouchableOpacity onPress={() => setMostrarContrasena(!mostrarContrasena)}>
-                        <Ionicons
-                            name={mostrarContrasena ? 'eye-off' : 'eye'}
-                            size={20}
-                            color={colores.textoSecundario}
-                        />
-                    </TouchableOpacity>
-                </View>
-                {errores.contrasena ? (
-                    <Text style={styles.textoError}>{errores.contrasena}</Text>
-                ) : (
-                    <Text style={[styles.hint, { color: colores.textoSecundario }]}>
-                        La contraseña debe ser mínimo de 8 caracteres
+                    <View style={[styles.iconoCirculo, { backgroundColor: colores.primario }]}>
+                        <Ionicons name="lock-closed" size={30} color="#FFFFFF" />
+                    </View>
+
+                    <Text style={[styles.titulo, { color: colores.texto, fontSize: 20 * escalaFuente }]}>
+                        Establece tu nueva contraseña
                     </Text>
-                )}
+                    <Text style={[styles.subtitulo, { color: colores.textoSecundario, fontSize: 13 * escalaFuente }]}>
+                        Elige una contraseña segura que no hayas usado antes.
+                    </Text>
 
-                {/* Confirmar contraseña */}
-                <Text style={[styles.label, { color: colores.texto, fontSize: 16 * escalaFuente }]}>
-                    Confirmar contraseña
-                </Text>
-                <View style={[
-                    styles.inputContainer,
-                    { backgroundColor: colores.fondoTarjeta, borderColor: colores.primario },
-                    errores.confirmarContrasena && styles.inputError,
-                ]}>
-                    <Ionicons name="lock-closed" size={18} color={colores.textoSecundario} style={styles.iconoIzq} />
-                    <TextInput
-                        style={[styles.input, { color: colores.texto }]}
-                        placeholder="Contraseña nuevamente"
-                        placeholderTextColor={colores.textoSecundario}
-                        secureTextEntry={!mostrarConfirmar}
-                        value={confirmarContrasena}
-                        onChangeText={(t) => {
-                            setConfirmarContrasena(t);
-                            setErrores((e) => ({ ...e, confirmarContrasena: '' }));
-                        }}
-                    />
-                    <TouchableOpacity onPress={() => setMostrarConfirmar(!mostrarConfirmar)}>
-                        <Ionicons
-                            name={mostrarConfirmar ? 'eye-off' : 'eye'}
-                            size={20}
-                            color={colores.textoSecundario}
+                    {/* Contraseña nueva */}
+                    <Text style={[styles.label, { color: colores.texto, fontSize: 14 * escalaFuente }]}>
+                        Contraseña nueva
+                    </Text>
+                    <View style={[
+                        styles.inputContainer,
+                        { backgroundColor: colores.fondo, borderColor: errores.contrasena ? '#E53935' : colores.primario },
+                    ]}>
+                        <Ionicons name="lock-closed-outline" size={18} color={colores.textoSecundario} style={styles.iconoIzq} />
+                        <TextInput
+                            style={[styles.input, { color: colores.texto }]}
+                            placeholder="Mínimo 8 caracteres"
+                            placeholderTextColor={colores.textoSecundario}
+                            secureTextEntry={!mostrarContrasena}
+                            value={contrasena}
+                            onChangeText={(t) => {
+                                setContrasena(t);
+                                setErrores((e) => ({ ...e, contrasena: '' }));
+                            }}
                         />
+                        <TouchableOpacity onPress={() => setMostrarContrasena(!mostrarContrasena)}>
+                            <Ionicons
+                                name={mostrarContrasena ? 'eye-off' : 'eye'}
+                                size={20}
+                                color={colores.textoSecundario}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                    {errores.contrasena ? (
+                        <Text style={styles.textoError}>{errores.contrasena}</Text>
+                    ) : (
+                        <Text style={[styles.hint, { color: colores.textoSecundario }]}>
+                            Debe incluir al menos un número
+                        </Text>
+                    )}
+
+                    {/* Confirmar contraseña */}
+                    <Text style={[styles.label, { color: colores.texto, fontSize: 14 * escalaFuente }]}>
+                        Confirmar contraseña
+                    </Text>
+                    <View style={[
+                        styles.inputContainer,
+                        { backgroundColor: colores.fondo, borderColor: errores.confirmarContrasena ? '#E53935' : colores.primario },
+                    ]}>
+                        <Ionicons name="lock-closed-outline" size={18} color={colores.textoSecundario} style={styles.iconoIzq} />
+                        <TextInput
+                            style={[styles.input, { color: colores.texto }]}
+                            placeholder="Repite la contraseña"
+                            placeholderTextColor={colores.textoSecundario}
+                            secureTextEntry={!mostrarConfirmar}
+                            value={confirmarContrasena}
+                            onChangeText={(t) => {
+                                setConfirmarContrasena(t);
+                                setErrores((e) => ({ ...e, confirmarContrasena: '' }));
+                            }}
+                        />
+                        <TouchableOpacity onPress={() => setMostrarConfirmar(!mostrarConfirmar)}>
+                            <Ionicons
+                                name={mostrarConfirmar ? 'eye-off' : 'eye'}
+                                size={20}
+                                color={colores.textoSecundario}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                    {errores.confirmarContrasena ? (
+                        <Text style={styles.textoError}>{errores.confirmarContrasena}</Text>
+                    ) : null}
+
+                    {errores.general ? (
+                        <Text style={styles.textoErrorGeneral}>{errores.general}</Text>
+                    ) : null}
+
+                    <TouchableOpacity
+                        style={[styles.botonConfirmar, { backgroundColor: colores.primario }, guardando && styles.botonDeshabilitado]}
+                        onPress={handleConfirmar}
+                        disabled={guardando}
+                    >
+                        <Text style={styles.textoBotonConfirmar}>
+                            {guardando ? 'Guardando...' : 'Confirmar cambio'}
+                        </Text>
                     </TouchableOpacity>
                 </View>
-                {errores.confirmarContrasena ? (
-                    <Text style={styles.textoError}>{errores.confirmarContrasena}</Text>
-                ) : null}
-
-                {errores.general ? (
-                    <Text style={styles.textoError}>{errores.general}</Text>
-                ) : null}
             </ScrollView>
-
-            {/* FOOTER */}
-            <View style={styles.footer}>
-                <TouchableOpacity
-                    style={styles.botonConfirmar}
-                    onPress={handleConfirmar}
-                    disabled={guardando}
-                >
-                    <Text style={styles.textoBotonConfirmar}>
-                        {guardando ? 'Guardando...' : 'Confirmar'}
-                    </Text>
-                </TouchableOpacity>
-            </View>
         </KeyboardAvoidingView>
     );
 }
@@ -186,90 +187,99 @@ export default function RecuperarContrasena() {
 const styles = StyleSheet.create({
     wrapper: { flex: 1 },
     header: {
-        backgroundColor: '#1B3A6B',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
         paddingTop: 52,
-        paddingBottom: 20,
-        alignItems: 'center',
-        position: 'relative',
+        paddingBottom: 16,
     },
-    botonVolver: {
-        position: 'absolute',
-        left: 16,
-        top: 52,
-        backgroundColor: '#3B7FC4',
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    logo: {
-        width: 110,
-        height: 110,
-    },
-    contenido: {
-        paddingHorizontal: 32,
-        paddingTop: 24,
-    },
-    titulo: {
+    botonVolver: { width: 32 },
+    headerTitulo: {
+        flex: 1,
         fontSize: 22,
         fontWeight: 'bold',
-        color: '#1B3A6B',
+        color: '#FFFFFF',
         textAlign: 'center',
-        marginBottom: 30,
+    },
+    scrollContenido: {
+        paddingHorizontal: 16,
+        paddingBottom: 40,
+    },
+    tarjeta: {
+        borderRadius: 24,
+        paddingVertical: 28,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+    },
+    iconoCirculo: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    titulo: {
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 6,
+    },
+    subtitulo: {
+        textAlign: 'center',
+        marginBottom: 24,
+        lineHeight: 18,
     },
     label: {
-        fontSize: 16,
         fontWeight: 'bold',
-        color: '#1B3A6B',
-        textAlign: 'center',
-        marginTop: 20,
-        marginBottom: 10,
+        alignSelf: 'flex-start',
+        marginBottom: 8,
+        marginTop: 14,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#1B3A6B',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        backgroundColor: '#FFFFFF',
-    },
-    inputError: {
-        borderColor: '#E53935',
-        borderWidth: 2,
+        borderWidth: 1.5,
+        borderRadius: 14,
+        paddingHorizontal: 14,
+        width: '100%',
     },
     iconoIzq: {
         marginRight: 8,
     },
     input: {
         flex: 1,
-        paddingVertical: 12,
+        paddingVertical: 13,
         fontSize: 14,
-        color: '#1a1a1a',
     },
     hint: {
         fontSize: 11,
-        color: '#888',
         marginTop: 6,
-        textAlign: 'center',
+        alignSelf: 'flex-start',
     },
     textoError: {
         fontSize: 12,
         color: '#E53935',
         marginTop: 6,
-        textAlign: 'center',
+        alignSelf: 'flex-start',
+        fontWeight: '600',
     },
-    footer: {
-        paddingHorizontal: 32,
-        paddingBottom: 40,
-        paddingTop: 12,
+    textoErrorGeneral: {
+        fontSize: 13,
+        color: '#E53935',
+        textAlign: 'center',
+        marginTop: 16,
+        fontWeight: '600',
     },
     botonConfirmar: {
-        backgroundColor: '#1B3A6B',
+        width: '100%',
         paddingVertical: 16,
-        borderRadius: 10,
+        borderRadius: 14,
         alignItems: 'center',
+        marginTop: 28,
+    },
+    botonDeshabilitado: {
+        opacity: 0.7,
     },
     textoBotonConfirmar: {
         color: '#FFFFFF',

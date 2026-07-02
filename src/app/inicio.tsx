@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useAccesibilidad } from '../context/AccesibilidadContext';
 import { auth } from '../service/firebaseConfig';
+import { Frase, obtenerFraseDelDia } from '../service/fraseService';
 import {
   agregarModuloUsuario,
   obtenerModulosUsuario,
@@ -32,11 +33,13 @@ export default function Inicio() {
   const [moduloSeleccionado, setModuloSeleccionado] = useState<Modulo | null>(null);
   const [agregando, setAgregando] = useState(false);
   const [error, setError] = useState('');
+  const [fraseDelDia, setFraseDelDia] = useState<Frase | null>(null);
 
   const uid = auth.currentUser?.uid;
 
   useEffect(() => {
     cargarModulos();
+    obtenerFraseDelDia().then(setFraseDelDia);
   }, []);
 
   const cargarModulos = async () => {
@@ -159,6 +162,17 @@ export default function Inicio() {
           contentContainerStyle={styles.contenido}
           showsVerticalScrollIndicator={false}
         >
+          {fraseDelDia && (
+            <View style={[styles.tarjetaFrase, { backgroundColor: colores.fondoTarjeta }]}>
+              <Text style={[styles.fraseEtiqueta, { color: colores.primario, fontSize: 11 * escalaFuente }]}>
+                FRASE DEL DÍA
+              </Text>
+              <Text style={[styles.fraseTexto, { color: colores.texto, fontSize: 14 * escalaFuente }]}>
+                “{fraseDelDia.text}”
+              </Text>
+            </View>
+          )}
+
           <Text style={[styles.seccionTitulo, { color: colores.texto, fontSize: 16 * escalaFuente }]}>
             Tus módulos del saber
           </Text>
@@ -332,6 +346,15 @@ const styles = StyleSheet.create({
   },
   textoReintentar: { color: '#fff', fontWeight: 'bold' },
   contenido: { paddingVertical: 20, paddingHorizontal: 16, paddingBottom: 80 },
+  tarjetaFrase: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#F5C518',
+  },
+  fraseEtiqueta: { fontWeight: 'bold', letterSpacing: 0.5, marginBottom: 6 },
+  fraseTexto: { fontStyle: 'italic', lineHeight: 20 },
   seccionTitulo: { fontSize: 16, fontWeight: 'bold', marginBottom: 12, marginTop: 8 },
   filaModulos: { gap: 12, paddingBottom: 8 },
   tarjeta: {

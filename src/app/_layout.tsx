@@ -19,6 +19,7 @@ export default function RootLayout() {
         <Stack.Screen name="Perfil" options={{ headerShown: false }} />
         <Stack.Screen name="Vitrina" options={{ headerShown: false }} />
         <Stack.Screen name="ajustes" options={{ headerShown: false }} />
+        <Stack.Screen name="centroAyuda" options={{ headerShown: false }} />
         <Stack.Screen name="recuperarContrasena" options={{ headerShown: false }} />
         <Stack.Screen name="cambioCorrecto" options={{ headerShown: false }} />
         <Stack.Screen name="accesibilidad" options={{ headerShown: false }} />

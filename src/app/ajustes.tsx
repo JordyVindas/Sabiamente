@@ -195,13 +195,7 @@ export default function Ajustes() {
 
                         <TouchableOpacity style={styles.botonAmarillo} onPress={() => setModalRecuperar(true)}>
                             <Ionicons name="key" size={20} color="#FFFFFF" />
-                            <Text style={styles.botonTexto}>Recuperar Contraseña</Text>
-                            <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.botonAmarillo}>
-                            <Ionicons name="globe" size={20} color="#FFFFFF" />
-                            <Text style={styles.botonTexto}>Lenguaje</Text>
+                            <Text style={styles.botonTexto}>Actualizar contraseña</Text>
                             <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
                         </TouchableOpacity>
 
@@ -210,7 +204,7 @@ export default function Ajustes() {
                             Ayuda
                         </Text>
 
-                        <TouchableOpacity style={styles.botonAzul}>
+                        <TouchableOpacity style={styles.botonAzul} onPress={() => router.push('/Centroayuda')}>
                             <Ionicons name="help-circle" size={20} color="#FFFFFF" />
                             <Text style={styles.botonTexto}>Centro de ayuda</Text>
                             <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
@@ -240,7 +234,7 @@ export default function Ajustes() {
                             <Ionicons name="close-circle" size={28} color="#FFFFFF" />
                         </TouchableOpacity>
 
-                        <Text style={styles.modalTitulo}>Recuperación de contraseña</Text>
+                        <Text style={styles.modalTitulo}>Actualizar contraseña</Text>
 
                         <Text style={styles.modalLabel}>Correo electrónico</Text>
                         <TextInput

@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { View, Image, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 export default function PaginaCarga() {
   const router = useRouter();
